@@ -1,49 +1,73 @@
-# IMPORT DISCORD.PY. ALLOWS ACCESS TO DISCORD'S API.
 import discord
+from discord.ext import commands
+import json
 import requests
 import random
 import os
 from dotenv import main
 from bs4 import BeautifulSoup
 main.load_dotenv()
-# GETS THE CLIENT OBJECT FROM DISCORD.PY. CLIENT IS SYNONYMOUS WITH BOT.
-bot = discord.Client()
 
-def getEuroRate():
-    URL = "https://www.xe.com/currencyconverter/convert/?Amount=1&From=EUR&To=USD"
+bot = commands.Bot(command_prefix='$')
+
+f = open('currency-symbols.json')
+cur_data = json.load(f)
+
+def getEuroRate(cur1,cur2):
+    URL = "https://www.xe.com/currencyconverter/convert/?Amount=1&From="+ cur1 +"&To="+ cur2
     fake_id = random.randint(1000,9999)
     fake_id_string = str(fake_id)
     r = requests.get(URL,params={"id":fake_id_string, "availability":"available"})
   
-    soup = BeautifulSoup(r.content, 'html5lib') # If this line causes an error, run 'pip install html5lib' or install html5lib
+    soup = BeautifulSoup(r.content, 'html5lib') 
     table = soup.find('p', attrs = {'class':'result__BigRate-sc-1bsijpp-1 iGrAod'})
     txt = table.get_text()
     return txt
 
-# EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
+
 @bot.event
 async def on_ready():
-	# CREATES A COUNTER TO KEEP TRACK OF HOW MANY GUILDS / SERVERS THE BOT IS CONNECTED TO.
+
 	guild_count = 0
 
-	# LOOPS THROUGH ALL THE GUILD / SERVERS THAT THE BOT IS ASSOCIATED WITH.
+
 	for guild in bot.guilds:
-		# PRINT THE SERVER'S ID AND NAME.
+
 		print(f"- {guild.id} (name: {guild.name})")
 
-		# INCREMENTS THE GUILD COUNTER.
+
 		guild_count = guild_count + 1
 
-	# PRINTS HOW MANY GUILDS / SERVERS THE BOT IS IN.
+
 	print("SampleDiscordBot is in " + str(guild_count) + " guilds.")
 
-# EVENT LISTENER FOR WHEN A NEW MESSAGE IS SENT TO A CHANNEL.
-@bot.event
-async def on_message(message):
-	# CHECKS IF THE MESSAGE THAT WAS SENT IS EQUAL TO "HELLO".
-	if message.content == "euro":
-		# SENDS BACK A MESSAGE TO THE CHANNEL.
-		await message.channel.send(getEuroRate())
 
-# EXECUTES THE BOT WITH THE SPECIFIED TOKEN. TOKEN HAS BEEN REMOVED AND USED JUST AS AN EXAMPLE.
+#@bot.event
+#async def on_message(message):
+	# CHECKS IF THE MESSAGE THAT WAS SENT IS EQUAL TO "HELLO".
+	#if message.content == "euro":
+		# SENDS BACK A MESSAGE TO THE CHANNEL.
+		#await message.channel.send(getEuroRate())
+@bot.command()
+async def rate(ctx, cur1, cur2):
+	exist1 = False
+	exist2 = False
+	for element in cur_data:
+		if element["abbreviation"] == cur1:
+			exist1 = True
+		if element["abbreviation"] == cur2:
+			exist2 = True
+	if exist1 == True and exist2 == True :
+		await ctx.send("1 "+cur1+"== "+getEuroRate(cur1,cur2))
+	else:
+		await ctx.send("Bruh, wrong form !!!")
+@bot.command()
+async def money(ctx):
+	await ctx.send("Sample check rate : $rate USD CNY")
+	await ctx.send("Official form : CNY USD EUR ARS INR HUF ...")
+
+
+		
+
+#print(cur_data[1]["abbreviation"])
 bot.run(os.getenv("BOT_TOKEN"))
