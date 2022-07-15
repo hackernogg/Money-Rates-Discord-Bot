@@ -12,7 +12,7 @@ bot = commands.Bot(command_prefix='$')
 
 f = open('currency-symbols.json')
 cur_data = json.load(f)
-
+cryp_data = ["BTC","ETH"]
 def getEuroRate(cur1,cur2):
     URL = "https://www.xe.com/currencyconverter/convert/?Amount=1&From="+ cur1 +"&To="+ cur2
     fake_id = random.randint(1000,9999)
@@ -57,6 +57,10 @@ async def rate(ctx, cur1, cur2):
 			exist1 = True
 		if element["abbreviation"] == cur2:
 			exist2 = True
+	if cur1 in cryp_data:
+		exist1 = True
+	if cur2 in cryp_data:
+		exist2 = True
 	if exist1 == True and exist2 == True :
 		await ctx.send("1 "+cur1+"== "+getEuroRate(cur1,cur2))
 	else:
@@ -64,7 +68,7 @@ async def rate(ctx, cur1, cur2):
 @bot.command()
 async def money(ctx):
 	await ctx.send("Sample check rate : $rate USD CNY")
-	await ctx.send("Official form : CNY USD EUR ARS INR HUF ...")
+	await ctx.send("Official form : CNY USD EUR ARS INR HUF BTC ETH ...")
 
 
 		
